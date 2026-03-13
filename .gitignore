@@ -23,14 +23,6 @@
 *.swp
 *.swo
 
-data/raw/*
-data/intermediate/*
-data/tmp/*
-
-results/*
-figures/*
-plots/*
-
 .venv/
 venv/
 env/
