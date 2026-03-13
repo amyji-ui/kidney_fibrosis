@@ -217,7 +217,7 @@ ggsave(
 # -----------------
 saveRDS(
   ckd_filt,
-  file = file.path(out_obj_dir, "01_gse182256_processed_umap.rds")
+  file = file.path(out_obj_dir, "01_umap_gse182256_processed.rds")
 )
 
 # save cluster numbers and UMAP coordinates as a table
