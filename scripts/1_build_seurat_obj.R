@@ -219,3 +219,18 @@ saveRDS(
   ckd_filt,
   file = file.path(out_obj_dir, "01_gse182256_processed_umap.rds")
 )
+
+# save cluster numbers and UMAP coordinates as a table
+umap_df <- as.data.frame(Embeddings(ckd_filt, "umap"))
+umap_df$cell <- rownames(umap_df)
+umap_df$seurat_clusters <- ckd_filt$seurat_clusters
+umap_df$paper_cluster <- ckd_filt$paper_cluster
+umap_df$orig.ident <- ckd_filt$orig.ident
+
+write.table(
+  umap_df,
+  file = file.path(out_obj_dir, "01_umap_coordinates_and_clusters.txt"),
+  sep = "\t",
+  quote = FALSE,
+  row.names = FALSE
+)
