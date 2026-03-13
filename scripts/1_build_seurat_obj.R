@@ -17,8 +17,6 @@
 
 # Run UMAP and clustering
 # Save processed Seurat object
-# Save UMAPs colored by cluster / sample / group
-# Make marker plots to help identify PT cells
 
 library(Seurat)
 library(ggplot2)
@@ -214,3 +212,10 @@ ggsave(
   dpi = 300
 )
 
+# -----------------
+# Save processed Seurat object
+# -----------------
+saveRDS(
+  ckd_filt,
+  file = file.path(out_obj_dir, "01_gse182256_processed_umap.rds")
+)
