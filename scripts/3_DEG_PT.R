@@ -4,6 +4,8 @@
 # Load processed Seurat object
 # Find cluster marker genes
 # Subclustering analysis of PT in the UUO kidney
+# Find differentially expressed genes (cluster markers)
+# Manually label clusters
 
 library(Seurat)
 library(ggplot2)
@@ -134,7 +136,7 @@ p_pt_marker_genes_bubble <- DotPlot(
   features = pt_marker_genes_fig_2b,
   group.by = "seurat_clusters",
   cols = c("white", "deeppink4"),
-  dot.min = 0.05
+  dot.min = 0.1
 ) + RotatedAxis()
 p_pt_marker_genes_bubble
 ggsave(
@@ -154,7 +156,7 @@ ggsave(
 ckd_pt_uuo_markers <- FindAllMarkers(ckd_pt_uuo, 
                                  only.pos = TRUE, 
                                  logfc.threshold = 0.25)
-ckd_pt_top10_markers <- ckd_pt_uuo_markers |>
+ckd_pt_uuo_top10_markers <- ckd_pt_uuo_markers |>
   group_by(cluster) |>
   slice_max(order_by = avg_log2FC, n = 10)
 
@@ -163,17 +165,18 @@ ckd_pt_top10_markers <- ckd_pt_uuo_markers |>
 dir.create("results/markers", recursive = TRUE, showWarnings = FALSE)
 
 write.table(
-  ckd_pt.markers,
-  file = "results/markers/03_PT_all_cluster_markers.tsv",
+  ckd_pt_uuo_markers,
+  file = "results/markers/03_PT_UUO_all_cluster_markers.tsv",
   sep = "\t",
   quote = FALSE,
   row.names = FALSE
 )
 
 write.table(
-  ckd_pt.top10_markers,
-  file = "results/markers/03_PT_top10_markers_per_cluster.tsv",
+  ckd_pt_uuo_top10_markers,
+  file = "results/markers/03_PT_UUO_top10_markers_per_cluster.tsv",
   sep = "\t",
   quote = FALSE,
   row.names = FALSE
 )
+
