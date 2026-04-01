@@ -25,35 +25,6 @@ out_fig_dir <- "results/figures"
 ckd <- readRDS("results/seurat_objects/01_gse182256_processed_umap.rds")
 
 # -----------------
-# Find differentially expressed features (cluster markers)
-# -----------------
-
-# find all differentially expressed markers
-ckd_markers <- FindAllMarkers(ckd, only.pos = TRUE, logfc.threshold = 0.25)
-top10_markers <- ckd_markers |>
-  group_by(cluster) |>
-  slice_max(order_by = avg_log2FC, n = 10)
-
-# save the markers to file
-dir.create("results/markers", recursive = TRUE, showWarnings = FALSE)
-
-write.table(
-  ckd_markers,
-  file = "results/markers/02_all_cluster_markers.tsv",
-  sep = "\t",
-  quote = FALSE,
-  row.names = FALSE
-)
-
-write.table(
-  top10_markers,
-  file = "results/markers/02_top10_markers_per_cluster.tsv",
-  sep = "\t",
-  quote = FALSE,
-  row.names = FALSE
-)
-
-# -----------------
 # Use PT markers to find clusters that represent PT cells
 # https://pmc.ncbi.nlm.nih.gov/articles/PMC6683720/
 # Table 1 says the gold standard markers for All proximal tubule are
@@ -68,6 +39,9 @@ cluster_ids <- levels(Idents(ckd))
 # of the dataset.
 pt_lrp2 <- lapply(
   cluster_ids,
+  # for cluster cl, it tests expression in cluster cl vs all other cells
+  # returns avg_log2FC which is how much higher the exp is
+  # also returns p_val_adj which is the statistical significance
   function(cl) {
     FindMarkers(ckd, ident.1 = cl, features = "Lrp2")
   }
@@ -79,13 +53,15 @@ pt_slc34a1 <- lapply(
   }
 )
 
+# name each list element by cluster ID so results are easier to inspect
 names(pt_lrp2) <- cluster_ids
 names(pt_slc34a1) <- cluster_ids
 
-# build a summary table of marker statistics for each cluster
+# make a small summary table that keeps only p_val_adj
+# for the two canonical PT markers in each cluster
 pt_stats <- data.frame(
   cluster = cluster_ids,
-
+  
   Lrp2_padj = sapply(
     pt_lrp2,
     function(marker_result) {
@@ -102,19 +78,23 @@ pt_stats <- data.frame(
 )
 pt_stats
 
-# compute a PT gene module score
-# by combining the two PT marker gene into a simple module score to measure
-# overall PT-like transcriptional activity per cell,
+# define the PT marker gene set used for a simple PT module score
 pt_genes <- c("Lrp2", "Slc34a1")
 pt_genes <- pt_genes[pt_genes %in% rownames(ckd)]
+
+# add a PT module score to each cell
+# higher score means more PT-like expression pattern
 ckd <- AddModuleScore(ckd, features = list(pt_genes), name = "PT_score")
 
-# summarize the average PT score per cluster
+# average the PT module score across all cells in each cluster
+# this gives one mean PT score per cluster
 pt_score_by_cluster <- aggregate(ckd$PT_score1,
                                  by = list(cluster = ckd$seurat_clusters),
                                  FUN = mean)
 colnames(pt_score_by_cluster)[2] <- "mean_PT_score"
 
+# pull out per-cell expression values for the two PT markers
+# together with cluster identity
 pt_expr <- FetchData(ckd, vars = c("seurat_clusters", "Lrp2", "Slc34a1"))
 
 # calculate fraction of cells expressing PT markers
@@ -147,8 +127,8 @@ write.table(
 
 # define PT clusters:
 # 1) both canonical PT markers significantly enriched
-# 2) both markers have positive effect size
-# 3) a substantial fraction of cells express both markers
+# 2) a substantial fraction of cells express both markers
+# 3) at least 20% cells express these markers in the cluster
 pt_clusters <- pt_summary$cluster[
   !is.na(pt_summary$Lrp2_padj) &
     !is.na(pt_summary$Slc34a1_padj) &

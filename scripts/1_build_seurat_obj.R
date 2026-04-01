@@ -41,13 +41,20 @@ dir.create(out_fig_dir, recursive = TRUE, showWarnings = FALSE)
 # -----------------
 
 mat <- readRDS(mat_path)
-ckd <- CreateSeuratObject(counts = mat, project = "GSE182256", min.cells = 3, min.features = 200)
+ckd <- CreateSeuratObject(counts = mat, 
+                          project = "GSE182256", 
+                          min.cells = 3, 
+                          min.features = 200)
 print(ckd)
 
 # -----------------
 # Load and attach metadata to Seurat obj
 # -----------------
-meta <- read.delim(meta_path, header = TRUE, row.names = 1, sep = "\t", check.names = FALSE)
+meta <- read.delim(meta_path, 
+                   header = TRUE, 
+                   row.names = 1, 
+                   sep = "\t", 
+                   check.names = FALSE)
 meta <- meta[, c("orig.ident", "Cluster"), drop = FALSE]
 colnames(meta)[colnames(meta) == "Cluster"] <- "paper_cluster"
 
@@ -56,8 +63,8 @@ ckd <- subset(ckd, cells = common_cells)
 meta <- meta[common_cells, , drop = FALSE]
 ckd <- AddMetaData(ckd, metadata = meta)
 
-# head(ckd@meta.data)
-# table(ckd$paper_cluster)
+head(ckd@meta.data)
+table(ckd$paper_cluster)
 
 # -----------------
 # Compute QC metrics
@@ -69,7 +76,10 @@ head(ckd@meta.data)
 # Make QC plots
 # -----------------
 # violin plots
-p_vln <- VlnPlot(ckd, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, pt.size = 0)
+p_vln <- VlnPlot(ckd, 
+                 features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), 
+                 ncol = 3, 
+                 pt.size = 0)
 p_vln
 ggsave(
   filename = file.path(out_fig_dir, "01_qc_violin_before_filtering.png"),
@@ -80,7 +90,9 @@ ggsave(
 )
 
 # check relationship of UMI counts vs number of genes
-p_scatter1 <- FeatureScatter(ckd, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+p_scatter1 <- FeatureScatter(ckd, 
+                             feature1 = "nCount_RNA", 
+                             feature2 = "nFeature_RNA")
 p_scatter1
 ggsave(
   filename = file.path(out_fig_dir, "01_qc_scatter_counts_vs_features.png"),
@@ -91,7 +103,9 @@ ggsave(
 )
 
 # check if high mitochondrial cells also have low counts
-p_scatter2 <- FeatureScatter(ckd, feature1 = "nCount_RNA", feature2 = "percent.mt")
+p_scatter2 <- FeatureScatter(ckd, 
+                             feature1 = "nCount_RNA", 
+                             feature2 = "percent.mt")
 p_scatter2
 ggsave(
   filename = file.path(out_fig_dir, "01_qc_scatter_counts_vs_percent_mt.png"),
@@ -121,7 +135,9 @@ ckd_filt <- NormalizeData(ckd_filt)
 # Find highly variable features
 # -----------------
 
-ckd_filt <- FindVariableFeatures(ckd_filt, selection.method = "vst", nfeatures = 2000)
+ckd_filt <- FindVariableFeatures(ckd_filt, 
+                                 selection.method = "vst", 
+                                 nfeatures = 2000)
 
 top10 <- head(VariableFeatures(ckd_filt), 10)
 p_var <- VariableFeaturePlot(ckd_filt)
@@ -202,7 +218,10 @@ ckd_filt <- RunUMAP(ckd_filt, reduction = "harmony", dims = 1:30)
 ckd_filt <- FindNeighbors(ckd_filt, reduction = "harmony", dims = 1:30)
 ckd_filt <- FindClusters(ckd_filt)
 
-p_umap_clusters <- DimPlot(ckd_filt, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegend()
+p_umap_clusters <- DimPlot(ckd_filt, 
+                           reduction = "umap", 
+                           label = TRUE, 
+                           pt.size = 0.5) + NoLegend()
 p_umap_clusters
 ggsave(
   filename = file.path(out_fig_dir, "01_umap_seurat_clusters.png"),
