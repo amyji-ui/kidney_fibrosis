@@ -22,7 +22,7 @@ library(dplyr)
 out_obj_dir <- "results/seurat_objects"
 out_fig_dir <- "results/figures"
 
-ckd <- readRDS("results/seurat_objects/01_gse182256_processed_umap.rds")
+ckd <- readRDS("results/seurat_objects/01_umap_gse182256_processed.rds")
 
 # -----------------
 # Use PT markers to find clusters that represent PT cells
