@@ -41,7 +41,7 @@ p_var <- VariableFeaturePlot(ckd_pt_uuo)
 p_var_lab <- LabelPoints(plot = p_var, points = top10, repel = TRUE)
 p_var_lab
 ggsave(
-  filename = file.path(out_fig_dir, "03_PT_find_variable_features.png"),
+  filename = file.path(out_fig_dir, "03_PT_UUO_find_variable_features.png"),
   plot = p_var_lab,
   width = 6,
   height = 6,
@@ -54,17 +54,17 @@ ckd_pt_uuo <- ScaleData(ckd_pt_uuo,
 ckd_pt_uuo <- RunPCA(
   ckd_pt_uuo,
   assay = "RNA",
-  npcs = 8,
+  npcs = 30,
   features = VariableFeatures(object = ckd_pt_uuo),
   ndims.print = 1:5,
   nfeatures.print = 10
 )
 
-# check where the elbow is to confirm if 10 dims is reasonable
-p_elbow <- ElbowPlot(ckd_pt_uuo, ndims = 8)
+# check where the elbow is
+p_elbow <- ElbowPlot(ckd_pt_uuo, ndims = 30)
 p_elbow
 ggsave(
-  filename = file.path(out_fig_dir, "03_PT_pca_elbowplot.png"),
+  filename = file.path(out_fig_dir, "03_PT_UUO_pca_elbowplot.png"),
   plot = p_elbow,
   width = 6,
   height = 6,
@@ -75,7 +75,7 @@ ggsave(
 p_dim_loadings <- VizDimLoadings(ckd_pt_uuo, dims = 1:2, reduction = "pca")
 p_dim_loadings
 ggsave(
-  filename = file.path(out_fig_dir, "03_PT_pca_dim_loadings.png"),
+  filename = file.path(out_fig_dir, "03_PT_UUO_pca_dim_loadings.png"),
   plot = p_dim_loadings,
   width = 6,
   height = 6,
@@ -86,7 +86,7 @@ ggsave(
 p_dim_plot <- DimPlot(ckd_pt_uuo, reduction = "pca") + NoLegend()
 p_dim_plot
 ggsave(
-  filename = file.path(out_fig_dir, "03_PT_pca_dim_plot.png"),
+  filename = file.path(out_fig_dir, "03_PT_UUO_pca_dim_plot.png"),
   plot = p_dim_plot,
   width = 6,
   height = 6,
@@ -95,9 +95,9 @@ ggsave(
 
 ckd_pt_uuo <- RunHarmony(ckd_pt_uuo, group.by.vars = "orig.ident")
 
-ckd_pt_uuo <- RunUMAP(ckd_pt_uuo, reduction = "harmony", dims = 1:8)
-ckd_pt_uuo <- FindNeighbors(ckd_pt_uuo, reduction = "harmony", dims = 1:8)
-ckd_pt_uuo <- FindClusters(ckd_pt_uuo, algorithm = "leiden", resolution = 0.5)
+ckd_pt_uuo <- RunUMAP(ckd_pt_uuo, reduction = "harmony", dims = 1:30)
+ckd_pt_uuo <- FindNeighbors(ckd_pt_uuo, reduction = "harmony", dims = 1:30)
+ckd_pt_uuo <- FindClusters(ckd_pt_uuo)
 
 p_umap_clusters <- DimPlot(ckd_pt_uuo,
                            reduction = "umap",
@@ -113,15 +113,48 @@ ggsave(
 )
 
 # -----------------
+# Bubble plot of representative genes in each cluster.
+# -----------------
+
+pt_marker_genes_fig_2b <- c(
+  "Slc34a1",  # PT
+  "Slc13a3",  # PT
+  "Apom",     # precursor
+  "Slc5a12",  # S1
+  "Gsta4",    # S2
+  "Slc6a13",  # S3
+  "Pdgfb",    # profibrotic PT
+  "Wfdc15b",  # transient mix
+  "Mki67",    # proliferating
+  "Cd52"      # immune
+)
+
+p_pt_marker_genes_bubble <- DotPlot(
+  ckd_pt_uuo,
+  features = pt_marker_genes_fig_2b,
+  group.by = "seurat_clusters",
+  cols = c("white", "deeppink4"),
+  dot.min = 0.05
+) + RotatedAxis()
+p_pt_marker_genes_bubble
+ggsave(
+  filename = file.path(out_fig_dir, "03_PT_UUO_bubble_plot.png"),
+  plot = p_pt_marker_genes_bubble,
+  width = 6,
+  height = 6,
+  dpi = 300
+)
+
+# -----------------
 # (under construction)
 # Find differentially expressed features (cluster markers)
 # -----------------
 
 # find all differentially expressed markers
-ckd_pt_markers <- FindAllMarkers(ckd_pt, 
+ckd_pt_uuo_markers <- FindAllMarkers(ckd_pt_uuo, 
                                  only.pos = TRUE, 
                                  logfc.threshold = 0.25)
-ckd_pt_top10_markers <- ckd_pt.markers |>
+ckd_pt_top10_markers <- ckd_pt_uuo_markers |>
   group_by(cluster) |>
   slice_max(order_by = avg_log2FC, n = 10)
 
