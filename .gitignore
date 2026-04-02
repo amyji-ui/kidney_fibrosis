@@ -22,6 +22,7 @@
 *.temp
 *.swp
 *.swo
+*.pdf
 
 .venv/
 venv/

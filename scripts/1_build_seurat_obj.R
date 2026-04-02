@@ -108,8 +108,8 @@ ggsave(
 # Use deposited QC-filtered dataset for downstream analysis
 # -----------------
 
-# ckd_filt <- subset(ckd, subset = nFeature_RNA > 200 & nFeature_RNA < 3000 & percent.mt < 50)
 ckd_filt <- ckd
+ckd_filt <- subset(ckd, subset = nFeature_RNA > 200 & nFeature_RNA < 3000 & percent.mt < 5)
 
 # -----------------
 # Normalize data
@@ -217,7 +217,8 @@ ggsave(
 # -----------------
 saveRDS(
   ckd_filt,
-  file = file.path(out_obj_dir, "01_umap_gse182256_processed.rds")
+  file = file.path(out_obj_dir, "01_umap_gse182256_processed_lessMT.rds")
+  #file = file.path(out_obj_dir, "01_umap_gse182256_processed.rds")
 )
 
 # save cluster numbers and UMAP coordinates as a table
