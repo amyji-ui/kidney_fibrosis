@@ -374,3 +374,6 @@ save_plot(
   p_umap_pt_labels,
   "03_PT_UUO_umap_pt_ident_pred.png"
 )
+
+saveRDS(ckd_pt_uuo,
+        file = file.path(out_obj_dir, "03_gse182256_labeled_PT.rds"))
